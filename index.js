@@ -11,12 +11,21 @@ const twitterClient = new TwitterApi({
   accessSecret: process.env.TWITTER_ACCESS_SECRET
 });
 
-// Function to fetch and post news
+(async () => {
+  try {
+    const me = await twitterClient.v2.me();
+    console.log(`Bot is running as @${me.data.username}`);
+  } catch (error) {
+    console.error("Twitter API Error:", error);
+  }
+})();
+
+// Function to fetch and tweet news
 async function tweetNews() {
   try {
     console.log("Fetching trending news...");
     const news = await fetchTrendingNews();
-
+    
     if (news) {
       console.log("News fetched:", news.title);
       await postTweetWithImage(news.title, news.url);
@@ -28,9 +37,14 @@ async function tweetNews() {
   }
 }
 
-// Schedule tweets at peak engagement times (convert to your timezone)
-cron.schedule('0 8 * * *', tweetNews, { timezone: "UTC" });  // 8:00 AM UTC
+// ✅ Schedule tweets at peak engagement times (24-hour UTC format)
+cron.schedule('0 8 * * *', tweetNews, { timezone: "UTC" }); // 8:00 AM UTC
 cron.schedule('30 12 * * *', tweetNews, { timezone: "UTC" }); // 12:30 PM UTC
-cron.schedule('0 19 * * *', tweetNews, { timezone: "UTC" });  // 7:00 PM UTC
+cron.schedule('0 19 * * *', tweetNews, { timezone: "UTC" }); // 7:00 PM UTC
 
-console.log("Tweet scheduler initialized! Waiting for scheduled times...");
+console.log("✅ Tweet scheduler initialized! Waiting for scheduled times...");
+
+// 🛑 Prevent Render from stopping the bot
+setInterval(() => {
+  console.log("🟢 Bot is running...");
+}, 60000 * 10); // Keeps the bot alive by logging every 10 minutes
