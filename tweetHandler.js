@@ -12,12 +12,10 @@ const twitterClient = new TwitterApi({
   accessSecret: process.env.TWITTER_ACCESS_SECRET
 });
 
+// Function to download images
 async function downloadImage(imageUrl) {
   try {
-    const response = await axios({
-      url: imageUrl,
-      responseType: 'arraybuffer'
-    });
+    const response = await axios({ url: imageUrl, responseType: 'arraybuffer' });
     const imagePath = path.join(__dirname, `${uuidv4()}.jpg`);
     fs.writeFileSync(imagePath, response.data);
     return imagePath;
@@ -27,7 +25,36 @@ async function downloadImage(imageUrl) {
   }
 }
 
-async function postTweetWithImage(text, url) {
+// Function to generate varied hashtags dynamically
+function generateHashtags() {
+  const hashtagSets = [
+    "#Tech #AI #Innovation",
+    "#AI #Web3 #Blockchain",
+    "#Gadgets #FutureTech #Trends",
+    "#TechNews #AI #Cybersecurity",
+    "#Startup #Tech #Digital"
+  ];
+  return hashtagSets[Math.floor(Math.random() * hashtagSets.length)]; // Randomly pick a set
+}
+
+// Function to randomly select an idiom hook
+function getIdiomHook() {
+  const idioms = [
+    "Here’s how: 👇",
+    "Keep reading…",
+    "Have a look👇🏻",
+    "Let's break it down for you. ⬇️"
+  ];
+  return idioms[Math.floor(Math.random() * idioms.length)];
+}
+
+// Function to format the tweet
+function formatTweet(title, description) {
+  return `${title}\n\n${description}\n\n${getIdiomHook()}`;
+}
+
+// Function to post tweet with image
+async function postTweetWithImage(title, description) {
   try {
     const imageUrl = await fetchImage('technology');
     let mediaId = null;
@@ -36,22 +63,25 @@ async function postTweetWithImage(text, url) {
       const imagePath = await downloadImage(imageUrl);
       if (imagePath) {
         mediaId = await twitterClient.v1.uploadMedia(imagePath);
-        fs.unlinkSync(imagePath); // Clean up image after upload
+        fs.unlinkSync(imagePath); // Delete image after upload
       }
     }
 
-    const hashtags = "#Tech #AI #Web3 #Innovation";
-    const tweetText = `${text} \n\nRead more: ${url} \n\n${hashtags}`;
+    const tweetText = formatTweet(title, description);
 
     if (tweetText.length <= 280) {
       // Single tweet
       await twitterClient.v2.tweet({ text: tweetText, media: mediaId ? { media_ids: [mediaId] } : undefined });
     } else {
-      // Create a thread if the text is too long
-      const tweetParts = tweetText.match(/.{1,270}/g); // Split into chunks
+      // Create a thread if text is too long
+      const tweetParts = tweetText.match(/.{1,270}/g);
       let lastTweetId = null;
       for (const part of tweetParts) {
-        const response = await twitterClient.v2.tweet({ text: part, media: lastTweetId ? undefined : (mediaId ? { media_ids: [mediaId] } : undefined), reply: lastTweetId ? { in_reply_to_tweet_id: lastTweetId } : undefined });
+        const response = await twitterClient.v2.tweet({ 
+          text: part, 
+          media: lastTweetId ? undefined : (mediaId ? { media_ids: [mediaId] } : undefined), 
+          reply: lastTweetId ? { in_reply_to_tweet_id: lastTweetId } : undefined 
+        });
         lastTweetId = response.data.id;
       }
     }
