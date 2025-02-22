@@ -1,8 +1,12 @@
 require('dotenv').config();
+const express = require('express'); // ✅ Import Express
 const { TwitterApi } = require('twitter-api-v2');
 const { fetchTrendingNews } = require('./fetchNews');
 const { postTweetWithImage } = require('./tweetHandler');
 const cron = require('node-cron');
+
+const app = express(); // ✅ Initialize Express app
+const PORT = process.env.PORT || 3000; // ✅ Required for Render to keep the service alive
 
 const twitterClient = new TwitterApi({
   appKey: process.env.TWITTER_API_KEY,
@@ -20,7 +24,7 @@ const twitterClient = new TwitterApi({
   }
 })();
 
-// Function to fetch and tweet news
+// ✅ Function to fetch and tweet news
 async function tweetNews() {
   try {
     console.log("Fetching trending news...");
@@ -44,7 +48,12 @@ cron.schedule('0 19 * * *', tweetNews, { timezone: "UTC" }); // 7:00 PM UTC
 
 console.log("✅ Tweet scheduler initialized! Waiting for scheduled times...");
 
-// 🛑 Prevent Render from stopping the bot
-setInterval(() => {
-  console.log("🟢 Bot is running...");
-}, 60000 * 10); // Keeps the bot alive by logging every 10 minutes
+// ✅ Dummy Express route to prevent Render shutdown
+app.get('/', (req, res) => {
+  res.send("🟢 Twitter bot is running...");
+});
+
+// ✅ Start the dummy Express server
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
