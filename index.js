@@ -42,9 +42,9 @@ async function tweetNews() {
 }
 
 // ✅ Schedule tweets at peak engagement times (24-hour UTC format)
-cron.schedule('0 8 * * *', tweetNews, { timezone: "UTC" }); // 8:00 AM UTC
-cron.schedule('30 12 * * *', tweetNews, { timezone: "UTC" }); // 12:30 PM UTC
-cron.schedule('0 19 * * *', tweetNews, { timezone: "UTC" }); // 7:00 PM UTC
+cron.schedule('0 8 * * *', tweetNews, { timezone: "IST" }); // 8:00 AM IST
+cron.schedule('30 12 * * *', tweetNews, { timezone: "IST" }); // 12:30 PM IST
+cron.schedule('0 19 * * *', tweetNews, { timezone: "IST" }); // 7:00 PM IST
 
 console.log("✅ Tweet scheduler initialized! Waiting for scheduled times...");
 

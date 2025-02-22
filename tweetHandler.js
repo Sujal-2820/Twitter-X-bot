@@ -48,9 +48,19 @@ function getIdiomHook() {
   return idioms[Math.floor(Math.random() * idioms.length)];
 }
 
-// Function to format the tweet
-function formatTweet(title, description) {
-  return `${title}\n\n${description}\n\n${getIdiomHook()}`;
+// Function to generate CTA sentences
+function getCTA() {
+  const ctas = [
+    "💟LIKE this post so that the algorithm understands what you truly need.\n📥COMMENT your opinion on the same.\n\nFollow @GearUp28 for more such awesome content.",
+    "🔥If you found this helpful, smash the like button!\n💬 Drop your thoughts below.\n\nFollow @GearUp28 for daily tech insights!", 
+    "🚀 Stay ahead in tech! Like this post & let me know what you think.\n👇 Let's discuss in the comments.\n\nFollow @GearUp28 for more updates!"
+  ];
+  return ctas[Math.floor(Math.random() * ctas.length)];
+}
+
+// Function to format the tweet for a single post
+function formatSingleTweet(title, description) {
+  return `${title}\n\n${description}\n\n${generateHashtags()}`;
 }
 
 // Function to post tweet with image
@@ -67,23 +77,37 @@ async function postTweetWithImage(title, description) {
       }
     }
 
-    const tweetText = formatTweet(title, description);
+    const tweetText = formatSingleTweet(title, description);
 
     if (tweetText.length <= 280) {
       // Single tweet
       await twitterClient.v2.tweet({ text: tweetText, media: mediaId ? { media_ids: [mediaId] } : undefined });
     } else {
-      // Create a thread if text is too long
-      const tweetParts = tweetText.match(/.{1,270}/g);
+      // Create a thread
+      const tweetParts = description.match(/.{1,250}/g) || [];
       let lastTweetId = null;
-      for (const part of tweetParts) {
+      
+      // First tweet with idiom and image
+      const firstTweet = `${title}\n\n${tweetParts[0]}\n\n${getIdiomHook()}`;
+      const response = await twitterClient.v2.tweet({ text: firstTweet, media: mediaId ? { media_ids: [mediaId] } : undefined });
+      lastTweetId = response.data.id;
+      
+      // Post remaining tweets
+      for (let i = 1; i < tweetParts.length; i++) {
+        const part = tweetParts[i];
         const response = await twitterClient.v2.tweet({ 
           text: part, 
-          media: lastTweetId ? undefined : (mediaId ? { media_ids: [mediaId] } : undefined), 
-          reply: lastTweetId ? { in_reply_to_tweet_id: lastTweetId } : undefined 
+          reply: { in_reply_to_tweet_id: lastTweetId } 
         });
         lastTweetId = response.data.id;
       }
+      
+      // Add CTA as the last tweet
+      const ctaTweet = getCTA();
+      await twitterClient.v2.tweet({ 
+        text: ctaTweet, 
+        reply: { in_reply_to_tweet_id: lastTweetId } 
+      });
     }
 
     console.log("Tweet posted successfully!");
