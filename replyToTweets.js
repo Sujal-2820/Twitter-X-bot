@@ -16,7 +16,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 async function generateComment(text) {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const prompt = `Reply to this tweet in a friendly, human, slightly humorous, professional tone. Include an emoji. Keep it under 30 words.\n\n"${text}"`;
+    const prompt = `Reply to this X post in a friendly, human, slightly humorous, professional tone. But remember to keep it practical. Do not use the exact wordings as in the post, although you may use 1 or 2 keywords from the post you feel like including. Include an emoji. Keep it simple, less words, sounding like written by a Human and not by AI. \n\n"${text}"`;
 
     const result = await model.generateContent(prompt);
     const reply = result.response.text().trim();
