@@ -17,8 +17,8 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // Generate a human-like, friendly AI comment
 async function generateComment(text) {
   try {
-    const model = genAI.getGenerativeModel({ model: "models/gemini-pro" }); // ✅ corrected path
-    const prompt = `Reply to this X post in a friendly, human, slightly humorous, professional tone. But remember to keep it practical. Do not use the exact wordings as in the post, although you may use 1 or 2 keywords from the post you feel like including. Include an emoji. Keep it simple, less words, sounding like written by a Human and not by AI.\n\n"${text}"`;
+    const model = genAI.getGenerativeModel({ model: "models/gemini-pro" });
+    const prompt = `Reply to this X post in a friendly, human, slightly humorous, professional tone. Keep it practical. Avoid copying the post. Include an emoji. Keep it simple, short, and human.\n\n"${text}"`;
 
     const result = await model.generateContent(prompt);
     const reply = result.response.text().trim();
@@ -35,8 +35,12 @@ async function generateComment(text) {
 
 // Fetch tweets and reply with Gemini-generated responses
 async function processTweets() {
-  // Limit to 10 due to Twitter API rules
   const tweets = await fetchRelevantTweets("AI OR SaaS OR Automation OR AIAgent OR AIWrapper OR Support Each other", 10);
+
+  if (!tweets.length) {
+    console.warn("⚠️ No tweets fetched. Skipping reply.");
+    return;
+  }
 
   for (const tweet of tweets) {
     try {
@@ -50,9 +54,7 @@ async function processTweets() {
       await twitterClient.v2.reply(reply, tweet.id);
       console.log(`💬 Replied to tweet: ${tweet.id}`);
 
-      // Optional: delay between replies (simulate human behavior)
-      await new Promise((res) => setTimeout(res, 1500));
-
+      await new Promise((res) => setTimeout(res, 1500)); // simulate human pace
     } catch (error) {
       console.error(`❌ Error posting reply to tweet ${tweet.id}:`, error);
     }
