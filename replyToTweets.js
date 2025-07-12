@@ -14,7 +14,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 async function generateComment(text) {
   try {
-    const model = genAI.getGenerativeModel({ model: "models/chat-bison-001" }); // safer, replace with available model
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // safer, replace with available model
     const prompt = `Reply to this X post in a friendly, human, slightly humorous, professional tone. But keep it practical. Use 1 or 2 keywords from the post. Include an emoji. Keep it simple and short, sounding human.\n\n"${text}"`;
 
     const result = await model.generateContent(prompt);
