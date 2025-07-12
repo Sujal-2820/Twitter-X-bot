@@ -31,6 +31,8 @@ Write one short post that:
 
 You can also write about current trends in AI, SaaS, Automation, or no-code/low-code tools.
 
+NOTE: No need to include **, * or anything of that sort for particular words. Just plain words No need of Bold, italics or any decorative words.
+
 Here are 10 example posts to inspire tone and format (DO NOT copy, just match the feel and style):
 
 ---
