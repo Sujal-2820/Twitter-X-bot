@@ -21,7 +21,7 @@ Write one short post that:
 - is engaging and very slightly humorous
 - may be a strong statement or a question
 - may use or skip bullet points based on style
-- uses 2-3 emojis, especially ✅ ✔️ 🚀 📉 🧰
+- uses 2-3 emojis based on the response style
 - has line breaks and spacing to improve readability
 - is written in simple, human language (avoid idioms or fancy hooks)
 - looks like it was written by a human, not AI
