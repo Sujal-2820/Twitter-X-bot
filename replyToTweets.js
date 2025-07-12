@@ -3,7 +3,6 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { fetchRelevantTweets } = require('./readTweets');
 require('dotenv').config();
 
-// Initialize Twitter client
 const twitterClient = new TwitterApi({
   appKey: process.env.TWITTER_API_KEY,
   appSecret: process.env.TWITTER_API_SECRET,
@@ -11,21 +10,17 @@ const twitterClient = new TwitterApi({
   accessSecret: process.env.TWITTER_ACCESS_SECRET
 });
 
-// Initialize Gemini AI client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Generate a human-like, friendly AI comment
 async function generateComment(text) {
   try {
-    const model = genAI.getGenerativeModel({ model: "models/gemini-pro" });
-    const prompt = `Reply to this X post in a friendly, human, slightly humorous, professional tone. Keep it practical. Avoid copying the post. Include an emoji. Keep it simple, short, and human.\n\n"${text}"`;
+    const model = genAI.getGenerativeModel({ model: "models/chat-bison-001" }); // safer, replace with available model
+    const prompt = `Reply to this X post in a friendly, human, slightly humorous, professional tone. But keep it practical. Use 1 or 2 keywords from the post. Include an emoji. Keep it simple and short, sounding human.\n\n"${text}"`;
 
     const result = await model.generateContent(prompt);
     const reply = result.response.text().trim();
 
-    // Basic safety check
     if (!reply || reply.length < 5) return null;
-
     return reply;
   } catch (error) {
     console.error("❌ Gemini error:", error);
@@ -33,16 +28,19 @@ async function generateComment(text) {
   }
 }
 
-// Fetch tweets and reply with Gemini-generated responses
 async function processTweets() {
-  const tweets = await fetchRelevantTweets("AI OR SaaS OR Automation OR AIAgent OR AIWrapper OR Support Each other", 10);
+  // Fetch max 3 tweets to limit API calls and replies
+  const tweets = await fetchRelevantTweets("AI OR SaaS OR Automation OR AIAgent OR AIWrapper OR Support Each other", 3);
 
-  if (!tweets.length) {
-    console.warn("⚠️ No tweets fetched. Skipping reply.");
+  if (tweets.length === 0) {
+    console.log('⚠️ No tweets fetched. Skipping reply.');
     return;
   }
 
-  for (const tweet of tweets) {
+  // Reply only to max 2 tweets per run to stay within rate limits
+  const tweetsToReply = tweets.slice(0, 2);
+
+  for (const tweet of tweetsToReply) {
     try {
       const reply = await generateComment(tweet.text);
 
@@ -54,8 +52,13 @@ async function processTweets() {
       await twitterClient.v2.reply(reply, tweet.id);
       console.log(`💬 Replied to tweet: ${tweet.id}`);
 
-      await new Promise((res) => setTimeout(res, 1500)); // simulate human pace
+      // Delay 2 seconds between replies to reduce chance of rate limit errors
+      await new Promise((res) => setTimeout(res, 2000));
     } catch (error) {
+      if (error.code === 429) {
+        console.warn('⚠️ Twitter API rate limit reached while replying. Stopping replies.');
+        break; // stop processing further replies this run
+      }
       console.error(`❌ Error posting reply to tweet ${tweet.id}:`, error);
     }
   }
