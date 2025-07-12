@@ -12,11 +12,11 @@ const client = twitterClient.readOnly;
 
 async function fetchRelevantTweets(query = 'AI OR SaaS OR Automation OR AI Agent OR AI Wrapper', max = 10) {
   try {
-    // Limit max tweets fetched to 5 or less to reduce calls
-    const maxResults = Math.min(max, 5);
+    // Twitter API requires max_results between 10 and 100 for search
+    const apiMax = Math.min(Math.max(max, 10), 100);
 
     const results = await client.v2.search(query, {
-      max_results: maxResults,
+      max_results: apiMax,
       'tweet.fields': ['author_id', 'conversation_id', 'lang']
     });
 
